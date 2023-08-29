@@ -271,7 +271,7 @@ void render()
 	glPushMatrix();
     glColor3f(0.0, 1.0, 0.0);
 	//glColor3ub(150, 160, 220);
-	glTranslatef(g.pos[1], g.pos[1], 0.0f);
+	glTranslatef(g.pos[0], g.pos[1], 0.0f);
 	glBegin(GL_QUADS);
 		glVertex2f(-g.w, -g.w);
 		glVertex2f(-g.w, g.w);
