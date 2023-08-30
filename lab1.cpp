@@ -263,14 +263,24 @@ void physics()
 
 }
 
+
 void render()
 {
-
-	glClear(GL_COLOR_BUFFER_BIT);
+glClear(GL_COLOR_BUFFER_BIT);
 	//Draw box.
 	glPushMatrix();
-    glColor3f(0.0, 1.0, 0.0);
-	//glColor3ub(150, 160, 220);
+   if (g.pos[0] <= g.w) {
+        glColor3f(0.0f, 0.0f, 1.0f); 
+    }
+    else if (g.pos[0] >= (g.xres - g.w)) {
+        glColor3f(1.0f, 0.0f, 0.0f); 
+    }
+    else {
+        glColor3f(0.0f, 1.0f, 0.0f); 
+    }
+
+
+
 	glTranslatef(g.pos[0], g.pos[1], 0.0f);
 	glBegin(GL_QUADS);
 		glVertex2f(-g.w, -g.w);
@@ -279,5 +289,4 @@ void render()
 		glVertex2f(g.w, -g.w);
 	glEnd();
 	glPopMatrix();
-
 }
