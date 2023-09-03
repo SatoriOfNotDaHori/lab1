@@ -26,6 +26,10 @@ public:
     float w;
     float dir;
 	float pos[2];
+	float color[3];
+	clock_t lastBounceTime;
+    float minBounceInterval;
+    float maxBounceInterval;
     Global();
 }g;
 
@@ -83,10 +87,16 @@ Global::Global()
 
 	xres = 400;
 	yres = 200;
-    w= 20.0f;
-    dir = 25.0f;
+    w= 35.0f;
+    dir = 20.0f;
     pos[0] = 0.0f + w;
     pos[1] = yres /2.0f;
+	color[0] = 0.0f;
+	color[1] = 1.0f;
+	color[2] = 0.0f;
+	 lastBounceTime = clock();
+    minBounceInterval = 0.5f;  
+    maxBounceInterval = 3.0f; 
 }
 
 X11_wrapper::~X11_wrapper()
@@ -236,57 +246,47 @@ int X11_wrapper::check_keys(XEvent *e)
 
 void init_opengl(void)
 {
-	//OpenGL initialization
-	glViewport(0, 0, g.xres, g.yres);
-	//Initialize matrices
-	glMatrixMode(GL_PROJECTION); glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
-	//Set 2D mode (no perspective)
-	glOrtho(0, g.xres, 0, g.yres, -1, 1);
-	//Set the screen background color
-	glClearColor(0.1, 0.1, 0.1, 1.0);
+    //OpenGL initialization
+    glViewport(0, 0, g.xres, g.yres);
+    //Initialize matrices
+    glMatrixMode(GL_PROJECTION); glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW); glLoadIdentity();
+    //Set 2D mode (no perspective)
+    glOrtho(0, g.xres, 0, g.yres, -1, 1);
+    //Set the screen background color
+    glClearColor(0.1, 0.1, 0.1, 1.0);
 }
 
-void physics()
-{
-   	
-	g.pos[0] += g.dir;
-	if (g.pos[0] >= (g.xres-g.w)) {
-		g.pos[0] = (g.xres-g.w);
-		g.dir = -g.dir;
-	}
-	if (g.pos[0] <= g.w) {
-		g.pos[0] = g.w;
-		g.dir = -g.dir;
-	}
+void physics() {
+    g.pos[0] += g.dir;
+    if (g.pos[0] >= (g.xres-g.w)) {
+        g.pos[0] = (g.xres-g.w);
+        g.dir = -g.dir;
+        g.color[0] = 1.0f; // R
+        g.color[1] = 0.0f; // G
+        g.color[2] = 0.0f; // B
+    }
+    if (g.pos[0] <= g.w) {
+        g.pos[0] = g.w;
+        g.dir = -g.dir;
+        g.color[0] = 0.0f; // R
+        g.color[1] = 0.0f; // G
+        g.color[2] = 1.0f; // B
+    }
 
-
+    glClear(GL_COLOR_BUFFER_BIT);
+    //Draw box.
+    glPushMatrix();
+    glColor3f(g.color[0], g.color[1], g.color[2]);
 }
 
-
-void render()
-{
-glClear(GL_COLOR_BUFFER_BIT);
-	//Draw box.
-	glPushMatrix();
-   if (g.pos[0] <= g.w) {
-        glColor3f(0.0f, 0.0f, 1.0f); 
-    }
-    else if (g.pos[0] >= (g.xres - g.w)) {
-        glColor3f(1.0f, 0.0f, 0.0f); 
-    }
-    else {
-        glColor3f(0.0f, 1.0f, 0.0f); 
-    }
-
-
-
-	glTranslatef(g.pos[0], g.pos[1], 0.0f);
-	glBegin(GL_QUADS);
-		glVertex2f(-g.w, -g.w);
-		glVertex2f(-g.w, g.w);
-		glVertex2f(g.w, g.w);
-		glVertex2f(g.w, -g.w);
-	glEnd();
-	glPopMatrix();
+void render() {
+    glTranslatef(g.pos[0], g.pos[1], 0.0f);
+    glBegin(GL_QUADS);
+        glVertex2f(-g.w, -g.w);
+        glVertex2f(-g.w, g.w);
+        glVertex2f(g.w, g.w);
+        glVertex2f(g.w, -g.w);
+    glEnd();
+    glPopMatrix();
 }
