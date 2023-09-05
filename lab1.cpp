@@ -35,7 +35,8 @@ public:
     Global();
 }g;
 
-class X11_wrapper {
+class X11_wrapper 
+{
 private:
 	Display *dpy;
 	Window win;
@@ -70,7 +71,8 @@ int main()
 	int done = 0;
 	while (!done) {
 		//Process external events.
-		while (x11.getXPending()) {
+		while (x11.getXPending()) 
+		{
 			XEvent e = x11.getXNextEvent();
 			x11.check_resize(&e);
 			x11.check_mouse(&e);
@@ -90,7 +92,7 @@ Global::Global()
 	xres = 400;
 	yres = 200;
     w= 35.0f;
-    dir = 20.0f;
+    dir = 5.0f;
     pos[0] = 0.0f + w;
     pos[1] = yres /2.0f;
 	color[0] = 0.0f;
@@ -113,13 +115,15 @@ X11_wrapper::X11_wrapper()
 	GLint att[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
 	int w = g.xres, h = g.yres;
 	dpy = XOpenDisplay(NULL);
-	if (dpy == NULL) {
+	if (dpy == NULL) 
+	{
 		cout << "\n\tcannot connect to X server\n" << endl;
 		exit(EXIT_FAILURE);
 	}
 	Window root = DefaultRootWindow(dpy);
 	XVisualInfo *vi = glXChooseVisual(dpy, 0, att);
-	if (vi == NULL) {
+	if (vi == NULL) 
+	{
 		cout << "\n\tno appropriate visual found\n" << endl;
 		exit(EXIT_FAILURE);
 	} 
@@ -169,7 +173,6 @@ void X11_wrapper::reshape_window(int width, int height)
 	//window has been resized.
 	g.xres = width;
 	g.yres = height;
-	//
 	glViewport(0, 0, (GLint)width, (GLint)height);
 	glMatrixMode(GL_PROJECTION); glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW); glLoadIdentity();
@@ -198,28 +201,35 @@ void X11_wrapper::check_mouse(XEvent *e)
 	//Weed out non-mouse events
 	if (e->type != ButtonRelease &&
 		e->type != ButtonPress &&
-		e->type != MotionNotify) {
+		e->type != MotionNotify) 
+	{
 		//This is not a mouse event that we care about.
 		return;
 	}
 	//
-	if (e->type == ButtonRelease) {
+	if (e->type == ButtonRelease) 
+	{
 		return;
 	}
-	if (e->type == ButtonPress) {
-		if (e->xbutton.button==1) {
+	if (e->type == ButtonPress) 
+	{
+		if (e->xbutton.button==1) 
+		{
 			//Left button was pressed.
 			//int y = g.yres - e->xbutton.y;
 			return;
 		}
-		if (e->xbutton.button==3) {
+		if (e->xbutton.button==3) 
+		{
 			//Right button was pressed.
 			return;
 		}
 	}
-	if (e->type == MotionNotify) {
+	if (e->type == MotionNotify) 
+	{
 		//The mouse moved!
-		if (savex != e->xbutton.x || savey != e->xbutton.y) {
+		if (savex != e->xbutton.x || savey != e->xbutton.y) 
+		{
 			savex = e->xbutton.x;
 			savey = e->xbutton.y;
 			//Code placed here will execute whenever the mouse moves.
@@ -234,8 +244,10 @@ int X11_wrapper::check_keys(XEvent *e)
 	if (e->type != KeyPress && e->type != KeyRelease)
 		return 0;
 	int key = XLookupKeysym(&e->xkey, 0);
-	if (e->type == KeyPress) {
-		switch (key) {
+	if (e->type == KeyPress) 
+	{
+		switch (key) 
+		{
 			case XK_1:
 				//Key 1 was pressed
 				break;
@@ -262,7 +274,8 @@ void init_opengl(void)
 
 void physics()
 {
-    if (g.xres < 2 * g.w) {
+    if (g.xres < 2 * g.w) 
+	{
         g.showBox = false;
         return;
     } else {
@@ -271,35 +284,41 @@ void physics()
 
     g.pos[0] += g.dir;
 
-    clock_t currentTime = clock();
-    float timeSinceLastBounce = (float)(currentTime - g.lastBounceTime) / CLOCKS_PER_SEC;
-
-    if (g.pos[0] >= (g.xres-g.w) || g.pos[0] <= g.w) {
+    if (g.pos[0] >= (g.xres-g.w) || g.pos[0] <= g.w) 
+	{
         if (g.pos[0] >= (g.xres-g.w)) g.pos[0] = (g.xres-g.w);
         if (g.pos[0] <= g.w) g.pos[0] = g.w;
         g.dir = -g.dir;
 
+        // Turn red when bouncing
         g.color[0] = 1.0f;
         g.color[1] = 0.0f;
         g.color[2] = 0.0f;
+    } else {
+        // Calculate the fraction of the distance covered since the last bounce
+        float fraction;
+        if (g.dir > 0) {
+            fraction = (g.pos[0] - g.w) / (g.xres - 2 * g.w);
+        } else 
+		{
+            fraction = (g.xres - g.w - g.pos[0]) / (g.xres - 2 * g.w);
+        }
 
-        g.lastBounceTime = currentTime;
-    } else if (timeSinceLastBounce > g.minBounceInterval && timeSinceLastBounce < g.maxBounceInterval) {
-        g.color[0] = 0.0f;
-        g.color[1] = 0.0f;
-        g.color[2] = 1.0f;
-    } else if (timeSinceLastBounce > g.maxBounceInterval) {
-        g.color[0] = 0.0f;
-        g.color[1] = 1.0f;
-        g.color[2] = 0.0f;
+        // Interpolate colors based on the fraction of the distance covered
+        g.color[0] = 1.0f - fraction;
+        g.color[2] = fraction;
     }
 }
+
+
+
 
 void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    if (!g.showBox) {
+    if (!g.showBox) 
+	{
         return;
     }
 
