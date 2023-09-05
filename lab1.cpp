@@ -31,6 +31,7 @@ public:
     float minBounceInterval;
     float maxBounceInterval;
 	bool showBox;
+	clock_t currentBounceTime;
     Global();
 }g;
 
@@ -96,8 +97,8 @@ Global::Global()
 	color[1] = 1.0f;
 	color[2] = 0.0f;
 	 lastBounceTime = clock();
-    minBounceInterval = 0.5f;  
-    maxBounceInterval = 3.0f; 
+    minBounceInterval = 0.003f;  
+    maxBounceInterval = 0.4f; 
 	showBox = true;
 }
 
@@ -258,37 +259,50 @@ void init_opengl(void)
     //Set the screen background color
     glClearColor(0.1, 0.1, 0.1, 1.0);
 }
-void physics() {
+
+void physics()
+{
     if (g.xres < 2 * g.w) {
         g.showBox = false;
         return;
     } else {
         g.showBox = true;
     }
+
     g.pos[0] += g.dir;
-    if (g.pos[0] >= (g.xres-g.w)) {
-        g.pos[0] = (g.xres-g.w);
+
+    clock_t currentTime = clock();
+    float timeSinceLastBounce = (float)(currentTime - g.lastBounceTime) / CLOCKS_PER_SEC;
+
+    if (g.pos[0] >= (g.xres-g.w) || g.pos[0] <= g.w) {
+        if (g.pos[0] >= (g.xres-g.w)) g.pos[0] = (g.xres-g.w);
+        if (g.pos[0] <= g.w) g.pos[0] = g.w;
         g.dir = -g.dir;
-        g.color[0] = 1.0f; // R
-        g.color[1] = 0.0f; // G
-        g.color[2] = 0.0f; // B
-    }
-    if (g.pos[0] <= g.w) {
-        g.pos[0] = g.w;
-        g.dir = -g.dir;
-        g.color[0] = 0.0f; // R
-        g.color[1] = 0.0f; // G
-        g.color[2] = 1.0f; // B
+
+        g.color[0] = 1.0f;
+        g.color[1] = 0.0f;
+        g.color[2] = 0.0f;
+
+        g.lastBounceTime = currentTime;
+    } else if (timeSinceLastBounce > g.minBounceInterval && timeSinceLastBounce < g.maxBounceInterval) {
+        g.color[0] = 0.0f;
+        g.color[1] = 0.0f;
+        g.color[2] = 1.0f;
+    } else if (timeSinceLastBounce > g.maxBounceInterval) {
+        g.color[0] = 0.0f;
+        g.color[1] = 1.0f;
+        g.color[2] = 0.0f;
     }
 }
-void render() 
+
+void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    
+
     if (!g.showBox) {
         return;
     }
-    
+
     glPushMatrix();
     glColor3f(g.color[0], g.color[1], g.color[2]);
     glTranslatef(g.pos[0], g.pos[1], 0.0f);
@@ -300,3 +314,4 @@ void render()
     glEnd();
     glPopMatrix();
 }
+
