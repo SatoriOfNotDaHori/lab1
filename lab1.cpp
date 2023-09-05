@@ -30,6 +30,7 @@ public:
 	clock_t lastBounceTime;
     float minBounceInterval;
     float maxBounceInterval;
+	bool showBox;
     Global();
 }g;
 
@@ -97,6 +98,7 @@ Global::Global()
 	 lastBounceTime = clock();
     minBounceInterval = 0.5f;  
     maxBounceInterval = 3.0f; 
+	showBox = true;
 }
 
 X11_wrapper::~X11_wrapper()
@@ -256,8 +258,13 @@ void init_opengl(void)
     //Set the screen background color
     glClearColor(0.1, 0.1, 0.1, 1.0);
 }
-
 void physics() {
+    if (g.xres < 2 * g.w) {
+        g.showBox = false;
+        return;
+    } else {
+        g.showBox = true;
+    }
     g.pos[0] += g.dir;
     if (g.pos[0] >= (g.xres-g.w)) {
         g.pos[0] = (g.xres-g.w);
@@ -273,14 +280,17 @@ void physics() {
         g.color[1] = 0.0f; // G
         g.color[2] = 1.0f; // B
     }
-
+}
+void render() 
+{
     glClear(GL_COLOR_BUFFER_BIT);
-    //Draw box.
+    
+    if (!g.showBox) {
+        return;
+    }
+    
     glPushMatrix();
     glColor3f(g.color[0], g.color[1], g.color[2]);
-}
-
-void render() {
     glTranslatef(g.pos[0], g.pos[1], 0.0f);
     glBegin(GL_QUADS);
         glVertex2f(-g.w, -g.w);
